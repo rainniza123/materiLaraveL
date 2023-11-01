@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -24,27 +25,37 @@ class AuthController extends Controller
     }
     
     //store register
-    public function store(Request $request, User $user, Auth $auth)
+    public function store(Request $request, User $user, Auth $auth, Profile $profile)
     {
         $request->validate([
-            'name' => 'required|string|max:250',
-            'email' => 'required|email|max:250|unique:users,email',
-            'password' => 'required|min:8'
+            'name'  =>  'required|string|max:250',
+            'email' =>  'required|email|max:250|unique:users,email',
+            'password'  =>  'required|min:8',
+            'umur' => 'required',
+            'bio' => 'required|min:10',
+            'alamat' => 'required|min:10'
         ]);
 
-        $user::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' =>Hash::make($request->password)
-        ]);
 
-        $credential = $request->only('email', 'password');
-        $auth::attempt($credential);
+        //save data user
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        //save data profile
+        $profile->bio = $request->bio;
+        $profile->alamat = $request->alamat;
+        $profile->umur = $request->umur;
+        $profile->user_id = $user->id;
+        $profile->save();
+
+
+        $scredential = $request->only('email', 'password');
+        $auth::attempt($scredential);
         $request->session()->regenerate();
-
-
         return redirect()->route('auth.dashboard')
-        ->withSuscces('Anda telah registrasi dan login.!');
+        ->withSuccess('Anda telah registrasi dan login!');
     }
 
     //form login
@@ -59,19 +70,21 @@ class AuthController extends Controller
         //validasi form input
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        $credential = $request->only('email', 'password');
-        if($auth::attempt($credential));
+        //proses autentikasi
+        $scredential = $request->only('email', 'password');
+        if ($auth::attempt($scredential))
         {
             $request->session()->regenerate();
             return redirect()->route('auth.dashboard');
         }
 
+        // jika proses authentikasi gagal 
         return back()->withErrors([
-            'email' => 'Email tidak ditemukan',
-        ]) ->onlyInput('email');
+            'email' => 'Email atau password tidak ditemukan',
+        ])->onlyInput('email');
 
     }
 
@@ -95,4 +108,10 @@ class AuthController extends Controller
 
         return redirect()->route('auth.login');
     }
+
+    public function profile(User $user)
+    {
+        return view('auth.profile',compact($user));
+    }
+    
 }

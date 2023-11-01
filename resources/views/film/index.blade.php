@@ -1,10 +1,13 @@
 @extends('template.master')
 
+@section('title', 'Index')
+
 @push('css')
-<link rel="stylesheet" href="{{ asset('/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
 @endpush
+
 @section('content')
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -23,17 +26,17 @@
         </div>
       </div><!-- /.container-fluid -->
     </section>
+
     <!-- Main content -->
-    
     <section class="content">
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Data Table Cast</h3>
+                <h3 class="card-title">DataTable with minimal features & hover style</h3>
                 <div class="float-right ml-2" >
-                  <a href="{{ route('cast.create')}}" class="btn btn-small btn-info">Create</a>
+                  <a href="{{ route('film.create')}}" class="btn btn-small btn-info">Create</a>
                 </div>
               </div>
               <!-- /.card-header -->
@@ -42,37 +45,55 @@
                   <thead>
                   <tr>
                     <th>No</th>
-                    <th>Nama</th>
-                    <th>Umur</th>
-                    <th>Action</th>
+                    <th>Judul</th>
+                    <th>Tahun</th>
+                    <th>Genre</th>
                   </tr>
                   </thead>
                   <tbody>
-                     @foreach ($casts as $key => $value)
-                     <tr>
-                        <td>{{ $key + 1 }}</td>
-                        <td>{{ $value ->nama }}</td>
-                        <td>{{ $value ->umur}}</td>
+                    @foreach ($films as $key => $value)
+                    <tr>
+                        <td>{{$key + 1}}</td>
+                        <td>{{ $value->judul }}</td>
+                        <td>{{ $value->tahun }}</td>
+                        <td>{{ $value->genre[0]->nama }}</td>
                         <td>
-                          <a href="{{ route('cast.show', $value->id) }}" class="btn btn-small btn-info">Detail</a>
-                          <a href="{{ route('cast.edit', $value->id) }}" class="btn btn-small btn-warning">Edit</a>
-                          <!-- <a href="{{ route('cast.destroy', $value->id) }}" class="btn btn-sm btn-danger">Delete</a> -->
-                          <form action="{{ route('cast.destroy', $value->id) }}" method="POST">
-                           @csrf
-                           @method('DELETE')
-                           <button type="sumbit" class="btn btn-small btn-danger" >Delete</button>
-                         </form> 
+                            <a href="{{ route('film.show', $value->id) }}" class="btn btn-small btn-info">Detail</a>
+                            <a href="{{ route('film.edit', $value->id) }}" class="btn btn-small btn-warning">edit</a>
+                            <button class="btn btn-small btn-danger" data-toggle="modal" data-target="#deleteModal{{ $value->id }}">Delete</button>
+                            <form action="{{ route('film.destroy', $value->id) }}" method="POST">
                         </td>
-                     </tr>
-                     @endforeach
+                    </tr>
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteModal{{ $value->id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            Are you sure you want to delete this record?
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <form action="{{ route('genre.destroy', $value->id) }}" method="POST">
+                              @csrf
+                              @method('DELETE')
+                              <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    @endforeach
                   </tbody>
-                  <tfoot>
-                  
-                  </tfoot>
                 </table>
               </div>
-              <!-- /.card-body -->
             </div>
+            <!-- /.card -->
           </div>
           <!-- /.col -->
         </div>
@@ -81,7 +102,7 @@
       <!-- /.container-fluid -->
     </section>
     <!-- /.content -->
-  </div>
+</div>
 @endsection
 
 @push('script')
@@ -97,8 +118,8 @@
 <script src="{{ asset('adminlte/plugins/datatables-buttons/js/buttons.html5.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/datatables-buttons/js/buttons.print.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js') }}"></script>
-<script> 
-  $(function () {
+<script>
+    $(function () {
     $("#example1").DataTable({
       "responsive": true, "lengthChange": false, "autoWidth": false,
       "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
